@@ -1,17 +1,22 @@
 #include <stdlib.h>
 
 struct arr_list {
+//private:
   int first;
   int last;
   int size;
   int capacity;
-  void **array;
+  void** array;
 
   arr_list() {
       first = last = 0;
       size = 0;
       capacity = 32;
-      array = (void**)malloc (capacity * sizeof (void *));
+      array = new void* [capacity];
+  }
+
+  ~arr_list() {
+      delete[] array;
   }
 };
 
@@ -30,6 +35,7 @@ int main() {
 
     arr_list cpplist2;
 
+    delete cpplist;
 }
 
 void
