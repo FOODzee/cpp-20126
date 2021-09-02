@@ -8,11 +8,10 @@ struct arr_list {
   void **array;
 
   arr_list() {
-      arr_list *list = this;
-      list->first = list->last = 0;
-      list->size = 0;
-      list->capacity = 32;
-      list->array = (void**)malloc (list->capacity * sizeof (void *));
+      first = last = 0;
+      size = 0;
+      capacity = 32;
+      array = (void**)malloc (capacity * sizeof (void *));
   }
 };
 
@@ -30,8 +29,6 @@ int main() {
     arr_list * cpplist = new arr_list();
 
     arr_list cpplist2;
-    cpplist2.array[0];
-    init(&cpplist2);
 
 }
 
