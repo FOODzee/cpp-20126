@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <iostream>
 
 class arr_list {
     int first;
@@ -109,13 +109,22 @@ public:
     }
 };
 
+void foo(arr_list x) {
+    int z;
+    std::cin >> z;
+    x.add_first(z);
+    std::cout << x.get_first() << " " << x.get_size() << std::endl;
+}
+
 int main() {
-    arr_list * cpplist = new arr_list();
+    arr_list list;
 
-    arr_list cpplist2;
-    arr_list cpplist32(32);
+    int x, y;
+    std::cin >> x >> y;
+    list.add_first(x);
+    list.add_last(y);
 
-    cpplist2.get_first();
-
-    delete cpplist;
+    std::cout << list.get_first() << " " << list.get_size() << std::endl;
+    foo(list);
+    std::cout << list.get_first() << " " << list.get_size() << std::endl;
 }
