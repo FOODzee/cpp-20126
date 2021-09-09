@@ -1,219 +1,121 @@
 #include <stdlib.h>
 
-struct arr_list {
-//private:
-  int first;
-  int last;
-  int size;
-  int capacity;
-  void** array;
+class arr_list {
+    int first;
+    int last;
+    int size;
+    int capacity;
+    int* array;
 
-  arr_list() {
-      first = last = 0;
-      size = 0;
-      capacity = 32;
-      array = new void* [capacity];
+    void arr_realloc(int add) {
+        if (size + add > capacity) {
+            int old_capacity = capacity;
+            capacity *= 2;
+
+            int* new_arr = new int[capacity];
+            for (int i = 0; i < old_capacity; i++) {
+                new_arr[i] = array[i];
+            }
+            delete[] array;
+            array = new_arr;
+
+            if (first > last) {
+                for (int i = first; i < old_capacity; i++) {
+                    array[i + old_capacity] = array[i];
+                }
+                first += old_capacity;
+            }
+        }
+    }
+
+public:
+
+  arr_list(int cap) :
+        first(),
+        last(0),
+        size(0),
+        capacity(cap),
+        array(new int[capacity]) {
   }
+
+  arr_list() : arr_list(32) {}
 
   ~arr_list() {
       delete[] array;
   }
+
+  bool is_empty() {
+      return size == 0;
+  }
+
+    int get_size() {
+        return size;
+    }
+
+    int get_first() {
+        if (size == 0) {
+            // TODO
+        }
+        return array[first];
+    }
+
+    int get_last() {
+        if (size == 0) {
+            // TODO
+        }
+        return array[last];
+    }
+
+    void add_first(int el) {
+        if (size == 0) {
+            array[first] = el;
+            size++;
+        } else {
+            arr_realloc(1);
+            first = (first + capacity - 1) % capacity;
+            array[first] = el;
+            size++;
+        }
+    }
+
+    void add_last(int el) {
+        if (size == 0) {
+            array[last] = el;
+            size++;
+        } else {
+            arr_realloc(1);
+            last = (last + 1) % capacity;
+            array[last] = el;
+            size++;
+        }
+    }
+
+    void remove_first() {
+        if (size == 0) {
+            return;
+        }
+        array[first] = 0;
+        first = (first + 1) % capacity;
+        size--;
+    }
+
+    void remove_last() {
+        if (size == 0) {
+            return;
+        }
+        array[last] = 0;
+        last = (last + capacity - 1) % capacity;
+        size--;
+    }
 };
 
-arr_list *init_arr_list ();
-
-void init(arr_list *list) {
-    list->first = list->last = 0;
-    list->size = 0;
-    list->capacity = 32;
-    list->array = (void**)malloc (list->capacity * sizeof (void *));
-}
-
 int main() {
-    arr_list * clist = init_arr_list();
     arr_list * cpplist = new arr_list();
 
     arr_list cpplist2;
+    arr_list cpplist32(32);
+
+    cpplist2.get_first();
 
     delete cpplist;
-}
-
-void
-arr_realloc (arr_list * list, int add)
-{
-  if (list->size + add > list->capacity)
-    {
-      int old_capacity = list->capacity;
-      //!
-      list->capacity *= 2;
-      //!
-      list->array = (void**) realloc (list->array, list->capacity);
-      if (list->first > list->last)
-        {
-          for (int i = list->first; i < old_capacity; i++)
-            {
-              list->array[i + old_capacity] = list->array[i];
-            }
-          list->first += old_capacity;
-        }
-    }
-}
-
-arr_list *
-init_arr_list ()
-{
-  arr_list *list = (arr_list*) malloc (sizeof (arr_list));
-  init(list);
-  return list;
-}
-
-void
-destruct_arr_list (arr_list * list)
-{
-  free (list->array);
-  free (list);
-}
-
-int
-is_empty (arr_list * list)
-{
-  return list->size == 0;
-}
-
-int
-get_size (arr_list * list)
-{
-  return list->size;
-}
-
-void *
-get_first (arr_list * list)
-{
-  if (list->size == 0)
-    {
-      return NULL;
-    }
-  return list->array[(list->first)];
-}
-
-void *
-get_last (arr_list * list)
-{
-  if (list->size == 0)
-    {
-      return NULL;
-    }
-  return list->array[(list->last)];
-}
-
-void *
-get_id (arr_list * list, int id)
-{
-  if (list->size == 0)
-    {
-      return NULL;
-    }
-  return list->array[(list->first + id) % list->capacity];
-}
-
-int
-add_first (arr_list * list, void *el)
-{
-  if (list->size == 0)
-    {
-      list->array[list->first] = el;
-      list->size++;
-    }
-  else
-    {
-      arr_realloc (list, 1);
-      list->first = (list->first + list->capacity - 1) % list->capacity;
-      list->array[list->first] = el;
-      list->size++;
-    }
-}
-
-int
-add_last (arr_list * list, void *el)
-{
-  if (list->size == 0)
-    {
-      list->array[list->last] = el;
-      list->size++;
-    }
-  else
-    {
-      arr_realloc (list, 1);
-      list->last = (list->last + 1) % list->capacity;
-      list->array[list->last] = el;
-      list->size++;
-    }
-}
-
-int
-add_id (arr_list * list, void *el, int id)
-{
-  if (list->size < id)
-    {
-      arr_realloc (list, id - list->size + 1);
-      list->array[(list->first + id) % list->capacity] = el;
-      list->size += id - list->size + 1;
-    }
-  else
-    {
-      arr_realloc (list, 1);
-      int p = list->size;
-      while (p > id)
-        {
-          list->array[(list->first + p) % list->capacity] =
-            list->array[(list->first + p - 1) % list->capacity];
-          p--;
-        }
-      list->array[(list->first + p) % list->capacity] = el;
-      list->size++;
-    }
-}
-
-void
-remove_first (arr_list * list)
-{
-  if (list->size == 0)
-    {
-      return;
-    }
-  list->array[list->first] = NULL;
-  list->first = (list->first + 1) % list->capacity;
-  list->size--;
-}
-
-void
-remove_last (arr_list * list)
-{
-  if (list->size == 0)
-    {
-      return;
-    }
-  list->array[list->last] = NULL;
-  list->last = (list->last + list->capacity - 1) % list->capacity;
-  list->size--;
-}
-
-void
-remove_id (arr_list * list, int id)
-{
-  if (list->size <= id)
-    {
-      return;
-    }
-  else
-    {
-      int p = id;
-      while (p < list->size)
-        {
-          list->array[(list->first + p) % list->capacity] =
-            list->array[(list->first + p + 1) % list->capacity];
-          p++;
-        }
-      list->size--;
-    }
 }
