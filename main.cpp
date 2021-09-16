@@ -38,7 +38,19 @@ public:
         array(new int[capacity]) {
   }
 
-  arr_list() : arr_list(32) {}
+    arr_list() : arr_list(32) {}
+
+    arr_list(const arr_list& orig) :
+        first(orig.first),
+        last(orig.last),
+        size(orig.size),
+        capacity(orig.capacity),
+        array(new int[capacity]) {
+
+        for (int i = 0; i < size; i++) {
+            array[i] = orig.array[i];
+        }
+    }
 
   ~arr_list() {
       delete[] array;
@@ -109,17 +121,31 @@ public:
     }
 };
 
-void foo(arr_list x) {
+void foo(arr_list& x) {
     int z;
     std::cin >> z;
     x.add_first(z);
     std::cout << x.get_first() << " " << x.get_size() << std::endl;
 }
 
+void swap(int* a, int* b) {
+    int c = *a;
+    *a = *b;
+    *b = c;
+}
+
+void swap(int& a, int& b) {
+    int c = a;
+    a = b;
+    b = c;
+}
+
 int main() {
     arr_list list;
 
-    int x, y;
+    int x = 5 , y = 8;
+    swap(&x, &y);
+    swap(x, y);
     std::cin >> x >> y;
     list.add_first(x);
     list.add_last(y);
