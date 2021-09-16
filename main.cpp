@@ -90,6 +90,16 @@ public:
         }
     }
 
+    arr_list operator<<= (int x) {
+        add_first(x);
+        return *this;
+    }
+
+    arr_list& operator>>= (int x) {
+        add_last(x);
+        return *this;
+    }
+
     void add_last(int el) {
         if (size == 0) {
             array[last] = el;
@@ -149,6 +159,9 @@ int main() {
     std::cin >> x >> y;
     list.add_first(x);
     list.add_last(y);
+
+    (list <<= x) <<= y;
+    list >>= y;
 
     std::cout << list.get_first() << " " << list.get_size() << std::endl;
     foo(list);
