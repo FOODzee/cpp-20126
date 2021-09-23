@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 
 class arr_list {
     int first;
@@ -52,9 +53,24 @@ public:
         }
     }
 
-  ~arr_list() {
-      delete[] array;
-  }
+    ~arr_list() {
+        delete[] array;
+    }
+
+    friend void swap(arr_list& a1, arr_list& a2) {
+        using std::swap;
+        swap(a1.array, a2.array);
+        swap(a1.size, a2.size);
+        swap(a1.first, a2.first);
+        swap(a1.last, a2.last);
+        swap(a1.capacity, a2.capacity);
+    }
+
+    arr_list& operator=(arr_list rhs) {
+        using std::swap;
+        swap(*this, rhs);
+        return *this;
+    }
 
   bool is_empty() {
       return size == 0;
@@ -138,12 +154,6 @@ void foo(arr_list& x) {
     std::cout << x.get_first() << " " << x.get_size() << std::endl;
 }
 
-void swap(int* a, int* b) {
-    int c = *a;
-    *a = *b;
-    *b = c;
-}
-
 void swap(int& a, int& b) {
     int c = a;
     a = b;
@@ -151,10 +161,12 @@ void swap(int& a, int& b) {
 }
 
 int main() {
-    arr_list list;
+    arr_list list, l2;
+
+    swap(list, l2);
 
     int x = 5 , y = 8;
-    swap(&x, &y);
+    using std::swap;
     swap(x, y);
     std::cin >> x >> y;
     list.add_first(x);
