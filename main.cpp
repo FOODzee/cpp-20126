@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 
 class arr_list {
@@ -67,14 +68,33 @@ public:
     }
 
     arr_list& operator=(arr_list rhs) {
-        using std::swap;
         swap(*this, rhs);
         return *this;
     }
 
-  bool is_empty() {
+    friend std::ostream& operator<<(std::ostream& os, const arr_list& obj) {
+        os << "arr_list.size: " << obj.size << std::endl;
+        int i = 0;
+        while (i < obj.size) {
+            os << obj.array[i++];
+        }
+        return os;
+    }
+    friend std::istream& operator>>(std::istream& is, arr_list& obj) {
+        int v;
+        while (is >> v) {
+            obj.add_last(v);
+        }
+        return is;
+    }
+
+    bool is_empty() const {
       return size == 0;
-  }
+    }
+
+    operator bool() const {
+        return is_empty();
+    }
 
     int get_size() {
         return size;
@@ -161,14 +181,17 @@ void swap(int& a, int& b) {
 }
 
 int main() {
-    arr_list list, l2;
+    std::ifstream in("int.txt");
 
+    arr_list list, l2(56);
+    in >> list;
     swap(list, l2);
 
     int x = 5 , y = 8;
     using std::swap;
     swap(x, y);
-    std::cin >> x >> y;
+    int a = x >> y;
+    in >> x >> y;
     list.add_first(x);
     list.add_last(y);
 
