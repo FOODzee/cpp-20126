@@ -2,7 +2,53 @@
 #include <fstream>
 #include <algorithm>
 
-class arr_list {
+class queue {
+public:
+    virtual void add_last(int e) = 0;
+    virtual void remove_first() = 0;
+    virtual int get_first() = 0;
+    virtual bool is_empty() const = 0;
+};
+
+class stack {
+public:
+    virtual void add_first(int e) = 0;
+    virtual void remove_first() = 0;
+    virtual int get_first() = 0;
+    virtual bool is_empty() const = 0;
+};
+
+class linked_list : public stack {
+    class node {
+    public:
+        int value;
+        node* next = nullptr;
+        node(int val, node* next) : value(val), next(next) {}
+    };
+    node* head = nullptr;
+public:
+    void add_first(int e) override {
+        std::cout << "linked_list" << std::endl;
+        head = new node(e, head);
+    }
+
+    void remove_first() override {
+        if (head != nullptr) {
+            // todo mem leak
+            head = head->next;
+        }
+    }
+
+    int get_first() override {
+        return head->value;
+    }
+
+    bool is_empty() const override {
+        return head == nullptr;
+    }
+};
+
+class arr_list : public stack, public queue {
     int first;
     int last;
     int size;
@@ -107,14 +153,8 @@ public:
         return array[first];
     }
 
-    int get_last() {
-        if (size == 0) {
-            // TODO
-        }
-        return array[last];
-    }
-
     void add_first(int el) {
+        std::cout << "arr_list" << std::endl;
         if (size == 0) {
             array[first] = el;
             size++;
@@ -124,16 +164,6 @@ public:
             array[first] = el;
             size++;
         }
-    }
-
-    arr_list operator<<= (int x) {
-        add_first(x);
-        return *this;
-    }
-
-    arr_list& operator>>= (int x) {
-        add_last(x);
-        return *this;
     }
 
     void add_last(int el) {
@@ -156,49 +186,26 @@ public:
         first = (first + 1) % capacity;
         size--;
     }
-
-    void remove_last() {
-        if (size == 0) {
-            return;
-        }
-        array[last] = 0;
-        last = (last + capacity - 1) % capacity;
-        size--;
-    }
 };
 
-void foo(arr_list& x) {
-    int z;
-    std::cin >> z;
-    x.add_first(z);
-    std::cout << x.get_first() << " " << x.get_size() << std::endl;
+void foo(stack& st) {
+    st.add_first(5);
+    std::cout << st.get_first() << std::endl  << std::endl;
 }
 
-void swap(int& a, int& b) {
-    int c = a;
-    a = b;
-    b = c;
+void bar(queue& q) {
+    q.add_last(6);
+    std::cout << q.get_first() << std::endl;
 }
 
 int main() {
-    std::ifstream in("int.txt");
-
-    arr_list list, l2(56);
-    in >> list;
-    swap(list, l2);
-
-    int x = 5 , y = 8;
-    using std::swap;
-    swap(x, y);
-    int a = x >> y;
-    in >> x >> y;
-    list.add_first(x);
-    list.add_last(y);
-
-    (list <<= x) <<= y;
-    list >>= y;
-
-    std::cout << list.get_first() << " " << list.get_size() << std::endl;
+    arr_list list;
+    bar(list);
     foo(list);
-    std::cout << list.get_first() << " " << list.get_size() << std::endl;
+
+    linked_list ll;
+    foo(ll);
+
+    int (stack::*f)() = &stack::get_first;
+    std::cout << f;
 }
