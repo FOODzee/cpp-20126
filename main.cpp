@@ -10,25 +10,26 @@ public:
     virtual bool is_empty() const = 0;
 };
 
+template <typename T>
 class stack {
 public:
-    virtual void add_first(int e) = 0;
+    virtual void add_first(T e) = 0;
     virtual void remove_first() = 0;
-    virtual int get_first() = 0;
+    virtual T get_first() = 0;
     virtual bool is_empty() const = 0;
 };
 
-class linked_list : public stack {
+template <typename T>
+class linked_list : public stack<T> {
     class node {
     public:
-        int value;
+        T value;
         node* next = nullptr;
-        node(int val, node* next) : value(val), next(next) {}
+        node(T val, node* next) : value(val), next(next) {}
     };
     node* head = nullptr;
 public:
-    void add_first(int e) override {
-        std::cout << "linked_list" << std::endl;
+    void add_first(T e) override {
         head = new node(e, head);
     }
 
@@ -39,16 +40,36 @@ public:
         }
     }
 
-    int get_first() override {
+    T get_first() override {
         return head->value;
     }
 
-    bool is_empty() const override {
-        return head == nullptr;
+    bool is_empty() const override;
+
+    friend std::ostream& operator<<(std::ostream& os, const linked_list<T>& obj) {
+        node* p = obj.head;
+        while (p != nullptr) {
+            os << p->value << " ";
+            p = p->next;
+        }
+        os << std::endl;
+        return os;
+    }
+    friend std::istream& operator>>(std::istream& is, linked_list<T>& obj) {
+        T v;
+        while (is >> v) {
+            obj.add_first(v);
+        }
+        return is;
     }
 };
 
-class arr_list : public stack, public queue {
+template <typename R>
+bool linked_list<R>::is_empty() const {
+    return head == nullptr;
+}
+
+class arr_list : public queue {
     int first;
     int last;
     int size;
@@ -188,24 +209,24 @@ public:
     }
 };
 
-void foo(stack& st) {
-    st.add_first(5);
-    std::cout << st.get_first() << std::endl  << std::endl;
-}
-
-void bar(queue& q) {
-    q.add_last(6);
-    std::cout << q.get_first() << std::endl;
+template<typename R>
+void foo(R r) {
+    r.print();
 }
 
 int main() {
-    arr_list list;
-    bar(list);
-    foo(list);
+    linked_list<int> li;
+    linked_list<double> ld;
+    linked_list<linked_list<int>> lli;
 
-    linked_list ll;
-    foo(ll);
+    using namespace std;
 
-    int (stack::*f)() = &stack::get_first;
-    std::cout << f;
+    cin >> li;
+    cout << "li: " << li << std::endl;
+
+    cin >> ld;
+    cout << "ld: " << ld << std::endl;
+
+    cin >> lli;
+    cout << "lli: " << lli << std::endl;
 }
