@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <sstream>
 
 class queue {
 public:
@@ -56,8 +57,13 @@ public:
         return os;
     }
     friend std::istream& operator>>(std::istream& is, linked_list<T>& obj) {
-        T v;
-        while (is >> v) {
+        using namespace std;
+        string s;
+        is >> s;
+        while (s != "end") {
+            stringstream ss(s);
+            T v;
+            ss >> v;
             obj.add_first(v);
         }
         return is;
