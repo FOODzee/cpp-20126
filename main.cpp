@@ -1,5 +1,5 @@
 #include <iostream>
-#include <fstream>
+#include <functional>
 #include <algorithm>
 #include <sstream>
 
@@ -43,6 +43,37 @@ public:
 
     T get_first() override {
         return head->value;
+    }
+
+    class cpp_iter {
+        node* cur;
+    public:
+        cpp_iter(node* n) : cur(n) {}
+
+        cpp_iter& operator++() {
+            cur = cur->next;
+            return *this;
+        }
+        bool operator== (const cpp_iter& that) const {
+            return this->cur == that.cur;
+        }
+        bool operator!= (const cpp_iter& that) const {
+            return this->cur != that.cur;
+        }
+        T operator*() const {
+            return cur->value;
+        }
+        T* operator->() const {
+            return &cur->value;
+        }
+    };
+
+    cpp_iter begin() const {
+        return cpp_iter(head);
+    }
+
+    cpp_iter end() const {
+        return cpp_iter(nullptr);
     }
 
     bool is_empty() const override;
@@ -215,24 +246,71 @@ public:
     }
 };
 
-template<typename R>
-void foo(R r) {
-    r.print();
+int get_hash(int i) {
+    return i + 0x32423;
+}
+
+int get_hash(const linked_list<int>& l) {
+    int h = 0;
+
+    // for-range
+    for (auto e : l) {
+        h *= 31;
+        h += e;
+    }
+    // same as for-iter
+    for (linked_list<int>::cpp_iter i = l.begin(); i != l.end(); ++i) {
+        int e = *i;
+        h *= 31;
+        h += e;
+    }
+    return h;
+}
+
+// std::hash specialization
+namespace std {
+    template<>
+    class hash<linked_list<int>> {
+        int operator() (const linked_list<int>& l) const {
+            return get_hash(l);
+        }
+    };
+}
+
+template<typename K>
+int get_place(K key) {
+    std::hash<K> hasher;
+    return hasher(key) /*% size*/;
+}
+
+class no_element : public std::exception {
+public:
+    const char * what() const noexcept override  {
+        return "no such element";
+    }
+};
+
+void foo() {
+    throw no_element();
+}
+
+void bar() {
+    foo();
 }
 
 int main() {
-    linked_list<int> li;
-    linked_list<double> ld;
-    linked_list<linked_list<int>> lli;
+    int i;
+    std::cin >> i;
 
-    using namespace std;
+    try {
+        bar();
+        std::cin >> i;
+    } catch (no_element& i) {
+        std::cout << i.what();
+    }
 
-    cin >> li;
-    cout << "li: " << li << std::endl;
+    int j;
+    std::cin >> j;
 
-    cin >> ld;
-    cout << "ld: " << ld << std::endl;
-
-    cin >> lli;
-    cout << "lli: " << lli << std::endl;
+    std::cout << get_place(i) << " " << get_place(j) << " " << get_place(std::string("s"));
 }
