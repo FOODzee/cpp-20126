@@ -298,9 +298,15 @@ void bar() {
     foo();
 }
 
+#include <map>
+
 int main() {
     int i;
     std::cin >> i;
+
+    using namespace std;
+    map<string, int> nums; int x;
+    nums["str"] += 1;
 
     try {
         bar();
