@@ -293,16 +293,25 @@ public:
 void foo() {
     throw no_element();
 }
-
+void bar();
 void bar() {
     foo();
 }
 
 #include <map>
 
+template <typename T>
+    class node {
+    public:
+        T value{};
+        node* next = nullptr;
+    };
+
 int main() {
     int i;
     std::cin >> i;
+
+    node<int> n;
 
     using namespace std;
     map<string, int> nums; int x;
@@ -315,8 +324,8 @@ int main() {
         std::cout << i.what();
     }
 
-    int j;
-    std::cin >> j;
+    std::string s;
+    std::cin >> s;
 
     std::cout << get_place(i) << " " << get_place(j) << " " << get_place(std::string("s"));
 }
