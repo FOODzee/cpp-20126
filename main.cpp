@@ -13,7 +13,7 @@ public:
     virtual void add_first(T e) = 0;
     virtual void remove_first() = 0;
     virtual T get_first() = 0;
-    virtual bool is_empty() const = 0;
+    virtual bool is_empty() = 0;
     virtual ~stack() = default;
 };
 
@@ -32,6 +32,7 @@ class linked_list : public stack<T> {
     node* head = nullptr;
     node* tail = nullptr;
 
+    std::recursive_mutex m;
 public:
     ~linked_list() override {
         delete head;
@@ -39,7 +40,8 @@ public:
 
     linked_list() = default;
 
-    linked_list(const linked_list<T>& that) {
+    linked_list(linked_list<T>& that) {
+        std::lock_guard lock(that.m);
         for (T e : that) {
             this->add_last(e);
         }
@@ -56,11 +58,14 @@ public:
 
     friend void swap(linked_list<T>& l, linked_list<T>& r) {
         using std::swap;
+        std::scoped_lock lock(l.m, r.m);
+
         swap(l.head, r.head);
         swap(l.tail, r.tail);
     }
 
     void add_first(T e) override {
+        std::lock_guard lock(m);
         head = new node(e, head);
         if (tail == nullptr) {
             tail = head;
@@ -68,6 +73,7 @@ public:
     }
 
     void add_last(T e) {
+        std::lock_guard lock(m);
         if (tail == nullptr) {
             add_first(e);
         } else {
@@ -76,6 +82,7 @@ public:
     }
 
     void remove_first() override {
+        std::lock_guard lock(m);
         if (head != nullptr) {
             node* p = head;
             head = head->next;
@@ -85,10 +92,12 @@ public:
     }
 
     T get_first() override {
+        std::lock_guard lock(m);
         return head->value;
     }
 
     T pop() {
+        std::lock_guard lock(m);
         T res = get_first();
         remove_first();
         return res;
@@ -125,7 +134,8 @@ public:
         return cpp_iter(nullptr);
     }
 
-    bool is_empty() const override {
+    bool is_empty() override {
+        std::lock_guard lock(m);
         return head == nullptr;
     }
 
@@ -187,6 +197,9 @@ int main() {
     //std::cout << l;
 
     std::thread t1(body, "t1", 100);
+
+    linked_list<int> l2 = l; // copy during popping in t1
+
     std::thread t2(body, "t2", 100);
     std::thread t3(body, "t3", 100);
     std::thread t4(body, "t4", 100);
