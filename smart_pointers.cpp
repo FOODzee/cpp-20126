@@ -9,7 +9,7 @@ struct test {
     }
 };
 
-int main() {
+int main2() {
     auto sp = std::make_shared<test>(1);
     {
         std::shared_ptr<test> spc = sp;
