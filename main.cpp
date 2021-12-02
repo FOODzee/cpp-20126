@@ -3,6 +3,10 @@
 #include <algorithm>
 #include <sstream>
 
+#include <thread>
+#include <chrono>
+#include <mutex>
+
 template <typename T>
 class stack {
 public:
@@ -27,6 +31,7 @@ class linked_list : public stack<T> {
     };
     node* head = nullptr;
     node* tail = nullptr;
+
 public:
     ~linked_list() override {
         delete head;
@@ -81,6 +86,12 @@ public:
 
     T get_first() override {
         return head->value;
+    }
+
+    T pop() {
+        T res = get_first();
+        remove_first();
+        return res;
     }
 
     class cpp_iter {
@@ -144,16 +155,44 @@ public:
     }
 };
 
+linked_list<int> l;
+std::mutex cout_mutex;
+
+void body(const std::string& name, int iter) {
+    for (int i = 0; i < iter; i++) {
+        if (l.is_empty()) {
+            std::cout << name << ": l is empty" << std::endl;
+            break;
+        }
+        int n = l.pop();
+        {
+            std::lock_guard<std::mutex> lock(cout_mutex);
+            std::cout << name << ": " << n << std::endl;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+}
+
 int main() {
-    int i,j;
-    std::cin >> i >> j;
+    int n;
+    std::cin >> n;
 
-    linked_list<int> l;
-    l.add_last(i);
-    l.add_last(j);
+    for (int i = 0; i < n; i++) {
+        l.add_last(i);
+    }
 
     std::cout << l;
 
-    std::cin >> l;
-    std::cout << l;
+    //std::cin >> l;
+    //std::cout << l;
+
+    std::thread t1(body, "t1", 100);
+    std::thread t2(body, "t2", 100);
+    std::thread t3(body, "t3", 100);
+    std::thread t4(body, "t4", 100);
+
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
 }
