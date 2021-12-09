@@ -6,6 +6,7 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
+#include <condition_variable>
 
 template <typename T>
 class stack {
@@ -33,6 +34,8 @@ class linked_list : public stack<T> {
     node* tail = nullptr;
 
     std::recursive_mutex m;
+    std::condition_variable_any element_added;
+
 public:
     ~linked_list() override {
         delete head;
@@ -62,6 +65,9 @@ public:
 
         swap(l.head, r.head);
         swap(l.tail, r.tail);
+
+        l.element_added.notify_all();
+        r.element_added.notify_all();
     }
 
     void add_first(T e) override {
@@ -70,6 +76,7 @@ public:
         if (tail == nullptr) {
             tail = head;
         }
+        element_added.notify_one();
     }
 
     void add_last(T e) {
@@ -78,6 +85,7 @@ public:
             add_first(e);
         } else {
             tail = tail->next = new node(e, nullptr);
+            element_added.notify_one();
         }
     }
 
@@ -86,8 +94,13 @@ public:
         if (head != nullptr) {
             node* p = head;
             head = head->next;
+
             p->next = nullptr;
             delete p;
+
+            if (head == nullptr) {
+                tail = nullptr;
+            }
         }
     }
 
@@ -101,6 +114,31 @@ public:
         T res = get_first();
         remove_first();
         return res;
+    }
+
+private:
+    bool no_more_elements = false;
+
+public:
+    struct stop_polling : std::exception {
+        stop_polling() : std::exception("list stopped polling") {}
+    };
+
+    T poll() {
+        std::unique_lock lock(m);
+        while (is_empty()) {
+            if (no_more_elements) {
+                throw stop_polling();
+            }
+            element_added.wait(lock);
+        }
+        return pop();
+    }
+
+    void set_no_more_elements() {
+        std::lock_guard lock(m);
+        no_more_elements = true;
+        element_added.notify_all();
     }
 
     class cpp_iter {
@@ -169,32 +207,29 @@ linked_list<int> l;
 std::mutex cout_mutex;
 
 void body(const std::string& name, int iter) {
-    for (int i = 0; i < iter; i++) {
-        if (l.is_empty()) {
-            std::cout << name << ": l is empty" << std::endl;
-            break;
+    {
+        std::lock_guard<std::mutex> lock(cout_mutex);
+        std::cout << name << " has started" << std::endl;
+    }
+
+    try {
+        for (int i = 0; i < iter; i++) {
+            int n = l.poll();
+            {
+                std::lock_guard<std::mutex> lock(cout_mutex);
+                std::cout << name << ": " << n << std::endl;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
-        int n = l.pop();
-        {
-            std::lock_guard<std::mutex> lock(cout_mutex);
-            std::cout << name << ": " << n << std::endl;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    } catch (const linked_list<int>::stop_polling& s) {
+        std::lock_guard<std::mutex> lock(cout_mutex);
+        std::cout << name << " caught stop_polling: " << s.what() << std::endl;
     }
 }
 
 int main() {
     int n;
     std::cin >> n;
-
-    for (int i = 0; i < n; i++) {
-        l.add_last(i);
-    }
-
-    std::cout << l;
-
-    //std::cin >> l;
-    //std::cout << l;
 
     std::thread t1(body, "t1", 100);
 
@@ -204,8 +239,26 @@ int main() {
     std::thread t3(body, "t3", 100);
     std::thread t4(body, "t4", 100);
 
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    for (int i = 0; i < n; i++) {
+        l.add_last(i);
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(cout_mutex);
+        std::cout << l;
+    }
+
+    std::cin >> l;
+
+    l.set_no_more_elements();
+    //std::cout << l;
+
     t1.join();
     t2.join();
     t3.join();
     t4.join();
+
+    std::cout << l;
 }
