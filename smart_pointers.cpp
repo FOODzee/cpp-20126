@@ -1,23 +1,42 @@
 #include <iostream>
 
-struct test {
+struct base {
     int i;
-    test(int i) : i(i) {}
+    explicit base(int i) : i(i) {}
 
-    ~test() {
-        std::cout << "  ~test  " << i;
+    virtual ~base() {
+        std::cout << "  base  " << i;
     }
 };
 
-int main2() {
-    auto sp = std::make_shared<test>(1);
-    {
-        std::shared_ptr<test> spc = sp;
+struct der : public base {
+    int j;
+    der(int i, int j) : base(i), j(j) {}
+};
 
-        std::cout << "15: " << sp.use_count() << std::endl;
+std::shared_ptr<base> create(bool b) {
+    return !b ? std::make_shared<base>(42) : std::make_shared<der>(32, 42);
+}
+
+int main() {
+    bool b;
+    std::cin >> b;
+    std::cout << b << std::endl;
+
+    auto o = create(b);
+    std::cout << o->i << std::endl;
+
+    base* bp = o.get();
+
+    der* dp2 = dynamic_cast<der*>(bp);
+    if (dp2 != nullptr) {
+        std::cout << dp2->j << std::endl;
     }
-    std::cout << "17: " << sp.use_count() << std::endl;
-    sp = std::make_shared<test>(2);
-    std::cout << "17: " << sp.use_count() << std::endl;
+
+    auto d = std::dynamic_pointer_cast<der>(o);
+    if (d) {
+        std::cout << d->j << std::endl;
+    }
+
     return 0;
 }
