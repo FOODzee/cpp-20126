@@ -228,18 +228,18 @@ void body(const std::string& name, int iter) {
 }
 
 int main() {
+
+    std::vector<std::thread> threads;
+    for (int i = 0; i < 5; i++) {
+        std::thread th(body, "t" + std::to_string(i), 100);
+        threads.push_back(std::move(th));
+    }
+    //std::generate(threads.begin(), threads.end(),
+    //              [k=0] () mutable{ return std::move(std::thread(body, "t" + std::to_string(k++), 100)); }
+    //              );
+
     int n;
     std::cin >> n;
-
-    std::thread t1(body, "t1", 100);
-
-    linked_list<int> l2 = l; // copy during popping in t1
-
-    std::thread t2(body, "t2", 100);
-    std::thread t3(body, "t3", 100);
-    std::thread t4(body, "t4", 100);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     for (int i = 0; i < n; i++) {
         l.add_last(i);
@@ -255,10 +255,9 @@ int main() {
     l.set_no_more_elements();
     //std::cout << l;
 
-    t1.join();
-    t2.join();
-    t3.join();
-    t4.join();
+    for (std::thread& th : threads) {
+        th.join();
+    }
 
     std::cout << l;
 }
